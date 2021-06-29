@@ -1,8 +1,10 @@
-﻿using CityInfo.API.Services;
+﻿using CityInfo.API.Entities;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -43,6 +45,7 @@ namespace CityInfo.API
                 })
                .AddMvcOptions(l => l.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter()));
             services.AddTransient<IMailService,LocalMailService>();
+            services.AddDbContext<CityInfoContext>(k => k.UseSqlServer(Startup.Configuration["DefaultConnectionString"]));
 
         }
 
