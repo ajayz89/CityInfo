@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,17 @@ namespace CityInfo.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            // manipulate naming conventions for Json 
+            services.AddMvc()
+                .AddJsonOptions(k =>
+                {
+                    if (k.SerializerSettings.ContractResolver != null)
+                    {
+                        var castedRes = k.SerializerSettings.ContractResolver as DefaultContractResolver;
+                        castedRes.NamingStrategy = null;
+                    }
+                })
+               .AddMvcOptions(l => l.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter())); ;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
