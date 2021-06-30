@@ -1,4 +1,5 @@
-﻿using CityInfo.API.Entities;
+﻿using AutoMapper;
+using CityInfo.API.Entities;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -46,11 +47,25 @@ namespace CityInfo.API
                .AddMvcOptions(l => l.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter()));
             services.AddTransient<IMailService,LocalMailService>();
             services.AddDbContext<CityInfoContext>(k => k.UseSqlServer(Startup.Configuration["DefaultConnectionString"]));
+            services.AddScoped<ICityInfoRepository, CityInfoRepository>();
 
+            var config = new MapperConfiguration(
+                cfg => {
+                    cfg.CreateMap<Entities.City, Models.CityWithoutPOI>();
+                    cfg.CreateMap<Entities.City, Models.CityDto>();
+                    cfg.CreateMap<Entities.PointOfInterest, Models.PointOfInterestDto>();
+                    cfg.CreateMap<Entities.PointOfInterest, Models.CreatePointOfInterestDto>();
+                    cfg.CreateMap<Models.CreatePointOfInterestDto, Entities.PointOfInterest>();
+                    cfg.CreateMap<Models.PointOfInterestDto, Entities.PointOfInterest>();
+                }
+                ) ;
+            var mapper = config.CreateMapper();
+
+            services.AddSingleton(mapper);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, CityInfoContext cityctx)
         {
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
@@ -66,7 +81,9 @@ namespace CityInfo.API
                 app.UseDeveloperExceptionPage();
             }
 
+            cityctx.EnsureSeedDataForContext();
             app.UseStatusCodePages();
+       
             app.UseMvc();
             //app.Run(async (context) =>
             //{
